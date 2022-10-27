@@ -316,11 +316,10 @@ int main()
         //update game state
         state_change |= check_remove_word(usr_buf);
 
+        //update game ticks and move enemies
         state_change |= update_game_time();
-            // move enemies
 
-            // check time ticks, mark state change
-        //SLEEP(20);
+        SLEEP(10); // don't waste those CPU cycles
     }
 
 

@@ -5,30 +5,44 @@
 
 struct timer_t
 {
-    clock_t start_time, set_time;
+    double start_time, set_time;
 };
 
 void set_timer(struct timer_t *tmr, unsigned long miliseconds)
 {
-    tmr->set_time = miliseconds;
+    tmr->set_time = miliseconds/1000.0;
+}
+
+double timespec2sec(struct timespec tp)
+{
+    return (double)tp.tv_sec + tp.tv_nsec/(1000.0*1000.0*1000.0);
 }
 
 void start_timer(struct timer_t *tmr)
 {
-    tmr->start_time = clock();
+    struct timespec now;
+    clock_gettime(CLOCK_REALTIME, &now);
+    tmr->start_time = timespec2sec(now);
 }
+
+/*
+void diff_timespec(struct timespec *l, struct timespec *r, struct timespec *out)
+{
+    out->tv_sec = (l->tv_sec - r->tv_sec);
+    out->tv_nsec = (l->tv_nsec - r->tv_nsec);
+}
+*/
 
 bool timer_elapsed(struct timer_t *tmr)
 {
-    clock_t now = clock();
-    clock_t diff =(now - tmr->start_time);
-    long long ticks = CLOCKS_PER_SEC;
-    long long mticks = ticks/1000;
-    long long elapsed = diff/mticks;
-    if(elapsed > tmr->set_time)
+    struct timespec now; clock_gettime(CLOCK_REALTIME, &now);
+    double diff = (timespec2sec(now) - tmr->start_time);
+    if(diff > tmr->set_time)
+    {
         return 1;
-    else
-        return 0;
+    }
+
+    return 0;
 }
 
 
