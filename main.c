@@ -182,49 +182,31 @@ int check_remove_word(char* word)
     if(!enemy_list)
         return 0;
 
-    if(!enemy_list->next)
+    struct enemy **trv = &enemy_list;
+    while(*trv)
     {
         //found a word, increment counter, clear buffer
-        if(!strncmp(enemy_list->word, usr_buf, enemy_list->len))
+        if(!strncmp((*trv)->word, usr_buf, (*trv)->len))
         {
+            struct enemy *tmp = *trv;
             words_killed++;
-            
+
             //clear off screen
-            for(int i = 0; i < enemy_list->len; i++)
-                tb_set_cell(enemy_list->x+i, enemy_list->y, ' ', TB_DEFAULT, TB_DEFAULT);
-            free(enemy_list);
-            enemy_list = NULL;
-            
+            for(int i = 0; i < (*trv)->len; i++)
+                tb_set_cell((*trv)->x+i, (*trv)->y, ' ', TB_DEFAULT, TB_DEFAULT);
+
+            if(tmp == enemy_list)
+                enemy_list = tmp->next;
+            else
+                *trv = tmp->next;
+
+            free(tmp);
+
             //clear usr input buffer
             clear_usr_buf();
             return 1;
         }
-
-    }
-    else
-    {
-        struct enemy **trv = &enemy_list->next;
-        while(*trv)
-        {
-            //found a word, increment counter, clear buffer
-            if(!strncmp((*trv)->word, usr_buf, (*trv)->len))
-            {
-                struct enemy *tmp = *trv;
-                words_killed++;
-
-                //clear off screen
-                for(int i = 0; i < (*trv)->len; i++)
-                    tb_set_cell((*trv)->x+i, (*trv)->y, ' ', TB_DEFAULT, TB_DEFAULT);
-
-                *trv = tmp->next;
-                free(tmp);
-
-                //clear usr input buffer
-                clear_usr_buf();
-                return 1;
-            }
-            trv = &((*trv)->next);
-        }
+        trv = &((*trv)->next);
     }
 
     return 0;
