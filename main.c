@@ -256,7 +256,7 @@ int eval_input()
                 if(len)
                     usr_buf[len-1] = '\0';
             }
-            else if(ev.ch > 'A' && ev.ch < 'z')
+            else if(ev.ch >= 'A' && ev.ch <= 'z')
             {
                 usr_buf[len] = ev.ch;
             }
