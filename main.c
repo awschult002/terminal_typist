@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <time.h>
+#include "timer.h"
 #include <math.h>
 #ifdef WIN_32
 #include "windows.h"
@@ -19,6 +20,23 @@
 #define MAX(x,y) ((x > y) ? x : y)
 
 #define DICTIONARY_FILE "/usr/share/dict/american-english"
+
+// GLOBALS 
+struct timer_t game_timer;
+struct timer_t fall_rate_timer;
+struct timer_t spawn_rate_timer;
+unsigned int game_seconds = 0;
+
+bool game_finished = false;
+bool state_change = true;
+
+#define USR_BUF_SIZE 32
+char usr_buf[USR_BUF_SIZE];
+
+unsigned int screen_height = 0;
+unsigned int screen_width = 0;
+unsigned int finish_line = 0;
+unsigned int words_killed = 0;
 
 //global word list
 size_t num_lines = 0;
@@ -74,11 +92,9 @@ struct enemy {
     int x,y,len;
     struct enemy *next;
 };
-
 struct enemy *enemy_list = NULL;
 
-#define USR_BUF_SIZE 32
-char usr_buf[USR_BUF_SIZE];
+
 void clear_usr_buf()
 {
     int len = USR_BUF_SIZE-1;
@@ -87,14 +103,6 @@ void clear_usr_buf()
 }
 
 
-bool game_finished = false;
-bool state_change = true;
-//unsigned long ticks = 0;
-unsigned int screen_height = 0;
-unsigned int screen_width = 0;
-unsigned int finish_line = 0;
-unsigned int words_killed = 0;
-unsigned int game_seconds = 0;
 
 void print_horizontal_rule(unsigned int y)
 {
@@ -238,7 +246,7 @@ void init_game()
 int eval_input()
 {
     struct tb_event ev;
-    if(tb_peek_event(&ev,1) == TB_OK)
+    if(tb_peek_event(&ev,0) == TB_OK)
     {
         if(ev.type == TB_EVENT_KEY) 
         {
@@ -262,6 +270,41 @@ int eval_input()
     return 0;
 }
 
+
+int update_game_time()
+{
+    int ret = 0;
+    if(timer_elapsed(&game_timer))
+    {
+        game_seconds++;
+        start_timer(&game_timer);
+        ret |= 1;
+    }
+
+    if(timer_elapsed(&fall_rate_timer))
+    {
+        //move all pieces
+        struct enemy *trv = enemy_list;
+        while(trv)
+        {
+            trv->y++;
+            trv = trv->next;
+        }
+        start_timer(&fall_rate_timer);
+        ret |= 1;
+    }
+
+    if(timer_elapsed(&spawn_rate_timer))
+    {
+        create_enemy();
+        start_timer(&spawn_rate_timer);
+        ret |= 1;
+    }
+
+    return ret;
+}
+
+
 int main()
 {
     // get a list of words
@@ -271,38 +314,46 @@ int main()
     init_game();
 
     //game loop
+    set_timer(&game_timer, 1000);//set to 1 second
+    set_timer(&fall_rate_timer, 1000/((words_killed/10)+1)); //increase fall rate every 10 kills
+    set_timer(&spawn_rate_timer, 2000); //spawn every 2 seconds
+    start_timer(&game_timer);
+    start_timer(&fall_rate_timer);
+    start_timer(&spawn_rate_timer);
+                                        
     while(!game_finished)
     {
+        //render first
         render_game();
-            //determine if state change
-                //determine words to go on screen
-                //check word bounds
-                    //end game if necessary
-                //present words to screen
-        //tb_print(2, y-1, TB_DEFAULT, TB_DEFAULT, "       ");
-        //tb_print(2, y++, TB_DEFAULT, TB_DEFAULT, "help me");
         
-        state_change = eval_input();
         // check for event
-            // mark state change
-
-        state_change |= check_remove_word(usr_buf);
+        state_change = eval_input();
 
         //update game state
+        state_change |= check_remove_word(usr_buf);
+
+        state_change |= update_game_time();
             // move enemies
-            // remove completed words
-            // adjust score
 
             // check time ticks, mark state change
         //SLEEP(20);
     }
 
-    /*
-    {
-        */
 
     tb_shutdown();
     //clean up
     free(word_list);
+    if(enemy_list)
+    {
+        while(enemy_list->next)
+        {
+            struct enemy *prv = enemy_list;
+            enemy_list = enemy_list->next;
+            free(prv);
+        }
+
+        free(enemy_list);
+        enemy_list = NULL;
+    }
     return EXIT_SUCCESS;
 }
