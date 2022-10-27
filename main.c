@@ -222,7 +222,7 @@ void init_game()
     screen_width = tb_width();
     finish_line = screen_height - 4;
 
-    srand(100);
+    srand(time(NULL));
     create_enemy();
 }
 
