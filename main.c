@@ -136,14 +136,15 @@ void render_game()
     }
 
 
-    // render score board
+    // render HUD
     print_horizontal_rule(finish_line);
     for(int i = 0; i < USR_BUF_SIZE; i++)
         tb_set_cell(i+2, finish_line + 1, ' ', TB_DEFAULT, TB_DEFAULT);
 
     tb_print(2, finish_line + 1, TB_DEFAULT, TB_DEFAULT, usr_buf);
     print_horizontal_rule(finish_line+2);
-    tb_printf(2, screen_height-1, TB_DEFAULT, TB_DEFAULT, "Words Killed: %d\t\t Time: %d", words_killed, game_seconds);
+    tb_printf(2, screen_height-1, TB_DEFAULT, TB_DEFAULT, "Words Killed: %d       Time: %d", words_killed, game_seconds);
+    tb_print(screen_width-20, screen_height-1, TB_DEFAULT, TB_DEFAULT, "Press \':\' to quit.");
 
 
     tb_present();
@@ -273,7 +274,7 @@ int update_game_time()
             trv->y++;
             trv = trv->next;
         }
-        set_timer(&fall_rate_timer, 1000/((words_killed/10)+1)); //increase fall rate every 10 kills
+        set_timer(&fall_rate_timer, 1000/((game_seconds/10)+1)); //increase fall rate every 10 kills
         start_timer(&fall_rate_timer);
         ret |= 1;
     }
@@ -308,19 +309,19 @@ void display_score_modal()
     char* mid = "│                             │";
     char* bot = "└─────────────────────────────┘";
 
-    int x = screen_width/2 - strlen(top)/2; 
+    int x = screen_width/2 - 31/2; 
     int y = screen_height/2 - 10;
 
     tb_print(x,y, TB_DEFAULT, TB_DEFAULT, top);
     tb_print(x,y+10, TB_DEFAULT, TB_DEFAULT, bot);
-    for(int i = 1; i < 9; i++)
+    for(int i = 1; i < 10; i++)
         tb_print(x,y+i, TB_DEFAULT, TB_DEFAULT, mid);
 
     // print some scores
     tb_print(x+2,y+1, TB_DEFAULT, TB_DEFAULT, "GAME OVER!");
     tb_printf(x+2,y+3, TB_DEFAULT, TB_DEFAULT, "Words Destroyed: %d", words_killed);
     tb_printf(x+2,y+4, TB_DEFAULT, TB_DEFAULT, "Time Spent: %d", game_seconds);
-    tb_printf(x+2,y+6, TB_DEFAULT, TB_DEFAULT, "Score: %f", words_killed/game_seconds);
+    tb_printf(x+2,y+6, TB_DEFAULT, TB_DEFAULT, "Score (wpm): %f", (double)words_killed/(double)game_seconds*60.0);
 
     tb_print(x+2,y+8, TB_DEFAULT, TB_DEFAULT, "Press any key to quit.");
 
@@ -340,7 +341,7 @@ int main()
 
     //game loop
     set_timer(&game_timer, 1000);//set to 1 second
-    set_timer(&fall_rate_timer, 1000/((words_killed/10)+1)); //increase fall rate every 10 kills
+    set_timer(&fall_rate_timer, 1000/((game_seconds/10)+1)); //increase fall rate every 10 seconds
     set_timer(&spawn_rate_timer, 2000); //spawn every 2 seconds
     start_timer(&game_timer);
     start_timer(&fall_rate_timer);
@@ -360,7 +361,7 @@ int main()
         //update game ticks and move enemies
         state_change |= update_game_time();
 
-        game_finished = check_game_over();
+        game_finished |= check_game_over();
 
         SLEEP(10); // don't waste those CPU cycles
     }
