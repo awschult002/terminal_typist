@@ -54,9 +54,10 @@ void read_system_dictionary()
     }
 
     char buf[128] = {0};
+    //filter the words
     while(fgets(buf,128,dict) != NULL)
     {
-        if(!strstr(buf, "\'s"))
+        if(!strstr(buf, "\'"))
         {
             num_lines++;
             max_len = MAX(strlen(buf), max_len);
@@ -272,6 +273,7 @@ int update_game_time()
             trv->y++;
             trv = trv->next;
         }
+        set_timer(&fall_rate_timer, 1000/((words_killed/10)+1)); //increase fall rate every 10 kills
         start_timer(&fall_rate_timer);
         ret |= 1;
     }
