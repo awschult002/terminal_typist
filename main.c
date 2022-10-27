@@ -288,6 +288,47 @@ int update_game_time()
     return ret;
 }
 
+// game is over when an enemy crosses the finish line
+bool check_game_over()
+{
+    struct enemy *trv = enemy_list;
+    while(trv)
+    {
+        if(trv->y >= finish_line)
+            return true;
+
+        trv = trv->next;
+    }
+    return false;
+}
+
+void display_score_modal()
+{
+    char* top = "┌─────────────────────────────┐";
+    char* mid = "│                             │";
+    char* bot = "└─────────────────────────────┘";
+
+    int x = screen_width/2 - strlen(top)/2; 
+    int y = screen_height/2 - 10;
+
+    tb_print(x,y, TB_DEFAULT, TB_DEFAULT, top);
+    tb_print(x,y+10, TB_DEFAULT, TB_DEFAULT, bot);
+    for(int i = 1; i < 9; i++)
+        tb_print(x,y+i, TB_DEFAULT, TB_DEFAULT, mid);
+
+    // print some scores
+    tb_print(x+2,y+1, TB_DEFAULT, TB_DEFAULT, "GAME OVER!");
+    tb_printf(x+2,y+3, TB_DEFAULT, TB_DEFAULT, "Words Destroyed: %d", words_killed);
+    tb_printf(x+2,y+4, TB_DEFAULT, TB_DEFAULT, "Time Spent: %d", game_seconds);
+    tb_printf(x+2,y+6, TB_DEFAULT, TB_DEFAULT, "Score: %f", words_killed/game_seconds);
+
+    tb_print(x+2,y+8, TB_DEFAULT, TB_DEFAULT, "Press any key to quit.");
+
+    tb_present();
+
+    struct tb_event ev;
+    tb_poll_event(&ev);
+}
 
 int main()
 {
@@ -319,9 +360,12 @@ int main()
         //update game ticks and move enemies
         state_change |= update_game_time();
 
+        game_finished = check_game_over();
+
         SLEEP(10); // don't waste those CPU cycles
     }
 
+    display_score_modal();
 
     tb_shutdown();
     //clean up
