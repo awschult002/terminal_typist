@@ -1,4 +1,11 @@
+# Terminal Typist #
 
 A super simple terminal typing game.
 
-if you want to make it harder, make your terminal window shorter.
+If you want to make it harder, make your terminal window shorter.
+
+
+## How to Build ##
+```
+make 
+```
