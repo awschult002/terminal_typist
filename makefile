@@ -1,4 +1,4 @@
-TARGET = typing_game
+TARGET = terminal_typist
 LIBS = -lm -lpthread 
 CC = gcc
 CFLAGS = -g3 -Wall --debug
