@@ -123,7 +123,14 @@ void render_game()
             tb_set_cell(trv->x+i, trv->y-1, ' ', TB_DEFAULT, TB_DEFAULT);
 
         //print new
-        tb_print(trv->x, trv->y, TB_DEFAULT, TB_DEFAULT, trv->word);
+        for(int i = 0; i < trv->len; i++)
+        {
+            //color the text as we type
+            if(trv->word[i] == usr_buf[i])
+                tb_set_cell(trv->x+i, trv->y, trv->word[i], TB_REVERSE, TB_REVERSE);
+            else
+                tb_set_cell(trv->x+i, trv->y, trv->word[i], TB_DEFAULT, TB_DEFAULT);
+        }
 
         trv = trv->next;
     }
