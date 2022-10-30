@@ -8,13 +8,8 @@
 #include <time.h>
 #include "timer.h"
 #include <math.h>
-#ifdef WIN_32
-#include "windows.h"
-#define SLEEP(x) Sleep(x)
-#else
 #include <unistd.h>
 #define SLEEP(x) usleep(x*1000)
-#endif
 
 #define MIN(x,y) ((x < y) ? x : y)
 #define MAX(x,y) ((x > y) ? x : y)
