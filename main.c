@@ -19,8 +19,6 @@
 #define MIN(x,y) ((x < y) ? x : y)
 #define MAX(x,y) ((x > y) ? x : y)
 
-#define DICTIONARY_FILE "/usr/share/dict/american-english"
-
 // GLOBALS 
 struct timer_t game_timer;
 struct timer_t fall_rate_timer;
